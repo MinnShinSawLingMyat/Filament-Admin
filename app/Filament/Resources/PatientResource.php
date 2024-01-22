@@ -8,6 +8,8 @@ use App\Models\Patient;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Repeater;
 use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\PatientResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -24,46 +26,48 @@ class PatientResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\Select::make('type')
-                    ->options([
-                        'cat' => 'Cat',
-                        'dog' => 'Dog',
-                        'rabbit' => 'Rabbit',
-                    ])
-                    ->required(),
-                Forms\Components\DatePicker::make('date_of_birth')
-                    ->required()
-                    ->maxDate(now()),
-                Forms\Components\Select::make('owner_id')
-                    ->relationship('owner', 'name')
-                    ->searchable()
-                    ->preload()
-                    ->createOptionForm([
+                Section::make('Patient')
+                    ->schema([
                         Forms\Components\TextInput::make('name')
-                            ->maxLength(255)
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\Select::make('type')
+                            ->options([
+                                'cat' => 'Cat',
+                                'dog' => 'Dog',
+                                'rabbit' => 'Rabbit',
+                            ])
                             ->required(),
-                        Forms\Components\TextInput::make('email')
-                            ->label('Email address')
-                            ->email()
-                            ->required(),
-                        Forms\Components\TextInput::make('phone')
-                            ->label('Phone number')
-                            ->tel()
-                            ->required(),
+                        Forms\Components\DatePicker::make('date_of_birth')
+                            ->required()
+                            ->maxDate(now()),
+                        Forms\Components\Select::make('owner_id')
+                            ->relationship('owner', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->createOptionForm([
+                                Forms\Components\TextInput::make('name')
+                                    ->maxLength(255)
+                                    ->required(),
+                                Forms\Components\TextInput::make('email')
+                                    ->label('Email address')
+                                    ->email()
+                                    ->required(),
+                                Forms\Components\TextInput::make('phone')
+                                    ->label('Phone number')
+                                    ->tel()
+                                    ->required(),
+                            ])
+                            ->required()
                     ])
-                    ->required(),
+                    ->columns(2),
+
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            // ->query(
-            //     fn (Patient $query) => $query->where('type','dog')
-            // )
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
@@ -111,16 +115,6 @@ class PatientResource extends Resource
             PatientTypeOverview::class,
         ];
     }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
-    }
-
-
 
     public static function getPages(): array
     {
