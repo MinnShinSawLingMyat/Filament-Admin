@@ -18,10 +18,5 @@ class TenantSeeder extends Seeder
             'name' => 'Min Shin Saw',
             'slug' => 'min-shin-saw',
         ])->users()->attach(User::find(1));
-
-        Team::create([
-            'name' => 'Edu Plus',
-            'slug' => 'edu-plus',
-        ])->users()->attach(User::all());
     }
 }

@@ -2,18 +2,19 @@
 
 namespace App\Filament\Resources;
 
-use BezhanSalleh\FilamentShield\Resources\RoleResource;
 use Filament\Forms;
 use App\Models\User;
 use Filament\Tables;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
+use Filament\Facades\Filament;
 use Filament\Resources\Resource;
 use Spatie\Permission\Models\Role;
 use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\UserResource\Pages;
 use BezhanSalleh\FilamentShield\Support\Utils;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use BezhanSalleh\FilamentShield\Resources\RoleResource;
 use App\Filament\Resources\UserResource\RelationManagers;
 
 class UserResource extends Resource
@@ -26,24 +27,42 @@ class UserResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('email')
-                    ->email()
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('password')
-                    ->password()
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\Select::make('roles')
-                    ->relationship('roles', 'name', function($query) {
-                        $query->whereNot('id', 1);
-                    })
-                    ->multiple()
-                    ->preload()
-                    ->searchable()
+                Forms\Components\Section::make(__('User'))
+                    ->schema([
+                        Forms\Components\TextInput::make('name')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('email')
+                            ->email()
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('password')
+                            ->password()
+                            ->dehydrated(fn ($state) => filled($state))
+                            ->required(fn (string $context): bool => $context === 'create')
+                            ->maxLength(255),
+                        Forms\Components\Select::make('roles')
+                            ->relationship('roles', 'name', function($query) {
+                                if(auth()->user()->id === 1) {
+                                    return $query;
+                                }
+                                return $query->whereNot('id', 1);
+                            })
+                            ->multiple()
+                            ->preload()
+                            ->searchable(),
+                    ])->columns(2),
+                Forms\Components\Section::make(__('Tenant'))
+                    ->description('Selecting Multi Tenancy will allow you to assign the user to a tenant.')
+                    ->schema([
+                        Forms\Components\Select::make('teams')
+                            ->label(__('Tenant'))
+                            ->relationship('teams', 'name')
+                            ->multiple()
+                            ->preload()
+                            ->searchable(),
+                    ])
+
             ]);
     }
 
@@ -105,6 +124,14 @@ class UserResource extends Resource
         return Utils::isResourceNavigationGroupEnabled()
             ? __('filament-shield::filament-shield.nav.group')
             : '';
+    }
+
+    public static function isScopedToTenant(): bool
+    {
+        if(Filament::getTenant()->id === 1) {
+            return false;
+        }
+        return true;
     }
 
     public static function getWidgets(): array

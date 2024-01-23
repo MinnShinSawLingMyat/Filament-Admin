@@ -26,14 +26,16 @@ class AdminPanelProvider extends PanelProvider
     {
         return $panel
             ->plugins([
-                \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make()
+                \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make(),
+                \BezhanSalleh\FilamentExceptions\FilamentExceptionsPlugin::make(),
+
             ])
             ->default()
             ->id('admin')
             ->path('admin')
             ->login()
             ->colors([
-                'primary' => Color::Blue,
+                'primary' => Color::Teal,
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
@@ -62,9 +64,9 @@ class AdminPanelProvider extends PanelProvider
             ->tenant(
                 Team::class,
                 slugAttribute: 'slug'
-            )
-            ->tenantRegistration(
-                RegisterTeam::class
             );
+            // ->tenantRegistration(
+            //     RegisterTeam::class
+            // );
     }
 }
